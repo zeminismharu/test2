@@ -123,6 +123,8 @@ button, input { font: inherit; color: inherit; }
 .actions {
   display: flex;
   gap: 12px;
+  /* 버튼이 없거나 나중에 생겨도 게임 영역 크기가 바뀌지 않게 높이를 잡아 둔다 */
+  min-height: calc(101px + env(safe-area-inset-bottom));
   padding: 12px 20px calc(16px + env(safe-area-inset-bottom));
 }
 
@@ -141,6 +143,7 @@ button, input { font: inherit; color: inherit; }
 .btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--ink); }
 .btn-primary { background: var(--amber); }
 .btn-secondary { background: var(--cream-light); flex: 0.7; }
+@media (max-width: 420px) { .btn { font-size: 19px; } }
 .btn:focus-visible { outline: 4px solid var(--ink-soft); outline-offset: 3px; }
 
 .hint { margin: 10px 0 0; text-align: center; font-size: 17px; }
@@ -240,21 +243,18 @@ button, input { font: inherit; color: inherit; }
 .done-number { margin: 4px 0 0; font-family: var(--font-title); font-size: clamp(80px, 26vw, 120px); line-height: 1; color: var(--amber-dark); }
 .done-text { margin: 18px 0 0; font-family: var(--font-title); font-size: 24px; }
 
-/* ---------- 임시 다음 화면 ---------- */
-.next { width: 100%; text-align: center; }
-.next-fallback { width: min(50vw, 220px); margin: 0 auto; }
-.next-photo { margin: 0; }
-.next-photo img {
-  display: block;
-  width: min(100%, 360px);
-  aspect-ratio: 1;
-  margin: 0 auto;
-  object-fit: cover;
-  border-radius: 50%;
-  border: 6px solid var(--golden);
-}
-.next-photo figcaption { margin-top: 12px; font-size: 14px; }
-.next-photo a { color: var(--amber-dark); font-weight: bold; }
+/* ---------- 게임 캔버스 (2~6단계) ---------- */
+.stage.is-game { padding: 0; place-items: stretch; overflow: hidden; }
+.game-canvas { display: block; touch-action: none; user-select: none; -webkit-user-select: none; }
+
+/* ---------- 결과 카드 ---------- */
+.stage.is-result { place-items: stretch; overflow: hidden; }
+.result { min-height: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.result-card { flex: 1 1 0; min-height: 0; width: 100%; display: flex; justify-content: center; align-items: center; }
+.result-card img, .result-card canvas { display: block; max-width: 100%; max-height: 100%; width: auto; height: auto; filter: drop-shadow(0 4px 0 rgba(74,47,26,0.25)); }
+.result-credit { margin: 0; font-size: 14px; text-align: center; }
+.result-credit a { color: var(--amber-dark); font-weight: bold; }
+.result .hint { margin: 0; }
 
 /* ---------- 컴퓨터 가로 : 왼쪽 주문서 / 가운데 키오스크 / 오른쪽 마스코트 ---------- */
 @media (min-width: 960px) and (orientation: landscape) {

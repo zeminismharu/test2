@@ -2,8 +2,9 @@
 
 > 일단 모르겠고 차분해지는 치킨이나 먹고 싶다
 
-기획서는 [CLAUDE.md](CLAUDE.md)에 있습니다. 지금은 **0단계(준비)와 1단계(키오스크 설문 + Pexels 검색)** 까지 만들었습니다.
-그림은 아직 없어서 임시 도형(SVG)을 쓰고, 효과음도 임시로 브라우저에서 만든 소리를 씁니다.
+기획서는 [CLAUDE.md](CLAUDE.md)에 있습니다. 게임 흐름 전체(키오스크 설문 → 때리기 → 흔들기 → 던지기 → 튀기기 → 뿌시기 → 결과 카드)가 들어 있습니다.
+그림은 아직 없어서 임시 도형을 쓰고, 효과음도 브라우저에서 만든 임시 소리를 씁니다.
+그림·소리 파일을 넣는 방법은 CLAUDE.md 9번에 있습니다.
 
 ## 로컬에서 확인하기
 
@@ -35,10 +36,22 @@ npm run preview
 > 코드를 고치면서 사진까지 보고 싶으면 터미널 두 개를 씁니다.
 > 하나는 `npm run build && npm run dev:api`(8788), 다른 하나는 `npm run dev`(5173) — 5173에서 `/api` 요청이 8788로 넘어갑니다.
 
+### 원하는 단계부터 바로 시험하기
+
+주소 뒤에 `?skip=단계` 를 붙이면 설문을 건너뜁니다.
+
+- `?skip=crush` — 뿌시기부터 (`&fry=raw` / `golden` / `burnt` 로 튀김 상태, `&q=바다` 로 속 재료)
+- `?skip=beat`, `?skip=shake`, `?skip=throw`, `?skip=fry`, `?skip=result`
+
+소리는 화면을 한 번 누른 다음부터 납니다.
+
 ### 폰에서 보기
 
 `npm run dev` 를 켜면 `Network: http://192.168.x.x:5173` 주소도 나옵니다. 같은 와이파이에 있는 폰으로 그 주소를 엽니다.
 컴퓨터 브라우저에서는 개발자 도구의 기기 모드(Chrome: F12 → 휴대폰 아이콘)로 세로 화면을 볼 수 있습니다.
+
+> **폰 흔들기(3단계)는 https 주소에서만 됩니다.** `http://192.168...` 로 열면 아이폰·안드로이드 모두 흔들림 센서를 막습니다.
+> 이때는 손가락으로 봉지를 좌우로 문지르면 됩니다. 실제 흔들기는 Cloudflare Pages 에 올린 `https://...pages.dev` 주소에서 시험하세요.
 
 ## Cloudflare Pages에 배포하기
 
@@ -61,19 +74,14 @@ npm run preview
 - 응답 예: `{ "query": "포근한 고양이", "level": "modifier", "photo": { "src", "photographer", "photographerUrl", "pexelsUrl", ... } }`
 - 오류: `empty_query`(400), `banned`(400, 금지어), `missing_api_key`(500), `pexels_failed`(502)
 
+## /api/image
+
+`GET /api/image?src=https://images.pexels.com/...` — Pexels 사진을 우리 주소로 대신 받아 줍니다.
+다른 사이트의 사진을 캔버스에 그리면 브라우저가 "이미지 저장"을 막을 수 있어서, 사진을 바로 못 불러오면 이 길로 다시 불러옵니다.
+`images.pexels.com` 외의 주소는 거절합니다.
+
 ## 폴더
 
-```
-index.html              앱 진입점
-src/main.js             화면 전환, 상태, 컴퓨터용 주문서·마스코트
-src/screens/kiosk.js    1단계 키오스크 설문 5개 화면
-src/screens/next-placeholder.js  2단계(뿌시기) 자리 — 지금은 속 사진 확인용
-src/ui/placeholders.js  임시 도형 (마스코트, 생닭, 치킨볼)
-src/audio.js            오디오 활성화, 임시 효과음
-shared/banned-words.js  금지어 (임시 목록)
-functions/api/photo.js  Pexels 검색 Pages Function
-public/assets/          그림 (Higgsfield로 만들 예정)
-public/sounds/          녹음 소리
-```
+CLAUDE.md 9번에 정리해 두었습니다.
 
 `notebooks/`, `data/`, `requirements.txt` 는 이 저장소를 처음 만들 때 있던 Jupyter 템플릿 파일로, 차분한치킨과는 관계없습니다.

@@ -140,20 +140,31 @@
 - 마스코트 이름
 - 사이트 주소 (처음엔 `*.pages.dev`)
 
-## 9. 폴더 구조 (0단계에서 만든 것)
+## 9. 폴더 구조 (지금 코드)
 
 ```
-index.html              앱 진입점 (Vite)
-src/                    화면·게임 코드
-  main.js               화면 전환, 상태
-  screens/kiosk.js      1단계 키오스크 설문 5개 화면
-  ui/placeholders.js    그림이 생기기 전 임시 도형(SVG)
-  audio.js              오디오 활성화, 임시 효과음
-  style.css             폰 세로 / 컴퓨터 가로 배치
-shared/banned-words.js  금지어 목록 (브라우저와 Pages Function이 같이 씀)
-functions/api/photo.js  Pexels 검색 Pages Function (/api/photo)
-public/assets/          그림 (Higgsfield)
-public/sounds/          녹음 소리
-wrangler.toml           Cloudflare Pages 설정 (빌드 결과: dist)
-.dev.vars               로컬 전용 API 키 (git에 올리지 않음)
+index.html                 앱 진입점 (Vite)
+src/main.js                화면 순서, 공용 상태, 컴퓨터용 주문서·마스코트, ?skip= 바로가기
+src/screens/kiosk.js       1단계 키오스크 설문 5개 화면
+src/screens/beat.js        2단계 생닭 때리기 (그물 워프)
+src/screens/shake.js       3단계 봉지 흔들기 (DeviceMotion / 드래그)
+src/screens/throw.js       4단계 던지기 + 실패 깜짝 연출 + 마스코트 대신 넣기
+src/screens/fry.js         5단계 튀기기
+src/screens/crush.js       6단계 뿌시기 (보로노이 조각)
+src/screens/result.js      7단계 결과 카드 + 이미지 저장
+src/game/engine.js         게임 캔버스 하나, 루프, 흔들림, 번쩍임(1초에 1번 제한)
+src/game/draw.js           캔버스 그림 (assets/ PNG 있으면 사용, 없으면 임시 도형)
+src/game/geometry.js       다각형 자르기, 보로노이
+src/audio.js               오디오 활성화, 효과음 (sounds.json 에 적힌 녹음 파일 우선)
+shared/banned-words.js     금지어 (브라우저와 Pages Function 이 같이 씀)
+functions/api/photo.js     Pexels 검색 (/api/photo)
+functions/api/image.js     Pexels 사진 중계 (/api/image, images.pexels.com 만 허용)
+public/assets/             그림 PNG
+public/sounds/             녹음 소리 + sounds.json
 ```
+
+### 그림 파일 이름 (public/assets/, 넣기만 하면 임시 도형 대신 쓰임)
+`logo.png`, `logo-alt.png`, `raw-chicken.png`, `bag.png`, `fryer.png`, `chicken-ball.png`(황금일 때), `mascot.png`, `mascot-sleep.png`, `mascot-throw.png`
+
+### 소리 이름 (public/sounds/sounds.json 에 `"이름": "파일명"`)
+`beep` `buzz` `chime` `punch` `rustle` `whoosh` `plop` `sizzle`(반복) `splat` `squish` `crunch1` `crunch2` `crunch3` `crumble` `crack`

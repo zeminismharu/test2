@@ -1,8 +1,8 @@
 // 1단계 · 키오스크 주문 — 대기 / 싫은 것(1/3) / 속 재료(2/3) / 주문 확인(3/3) / 주문 완료
-import { mascotSVG, rawChickenSVG } from '../ui/placeholders.js';
+import { mascotHTML, rawChickenHTML } from '../ui/placeholders.js';
 import { unlockAudio, beep, buzz, chime } from '../audio.js';
 import { hasBannedWord } from '../../shared/banned-words.js';
-import { fetchCalmPhoto } from '../photo.js';
+import { fetchCalmPhoto, ensurePhotoImage } from '../photo.js';
 import { escapeHTML, button } from '../ui/dom.js';
 
 const MAX_WORD_LENGTH = 30;
@@ -15,7 +15,7 @@ export const idle = {
   render({ stage, actions, go, signal }) {
     stage.innerHTML = `
       <div class="idle">
-        <div class="idle-mascot">${mascotSVG({ sleeping: true })}</div>
+        <div class="idle-mascot">${mascotHTML({ sleeping: true })}</div>
         <p class="idle-brand">차분한치킨</p>
         <p class="idle-tagline">일단 모르겠고 차분해지는 치킨이나 먹고 싶다</p>
         <p class="idle-touch">화면을 터치하세요</p>
@@ -48,7 +48,7 @@ export const dislike = {
       const picked = state.dislikeImage;
       stage.innerHTML = `
         <div class="dislike">
-          <div class="dislike-preview">${rawChickenSVG(picked)}</div>
+          <div class="dislike-preview">${rawChickenHTML(picked)}</div>
           <p class="hint">${picked ? '이걸로 생닭을 만들게요' : '사진을 넣거나, 그냥 생닭으로 가요'}</p>
           <p class="hint small">사진은 이 기기 안에서만 써요. 서버로 안 보내요.</p>
         </div>`;
@@ -116,6 +116,7 @@ export const calm = {
       if (word !== state.calmWord || !state.photoRequest) {
         state.calmWord = word;
         state.photoRequest = fetchCalmPhoto(word);
+        state.photoImage = null;
       }
       beep();
       go('confirm');
@@ -173,6 +174,8 @@ export const done = {
         <p class="done-text">일단 모르겠고 튀기러 갑니다</p>
       </div>`;
     actions.innerHTML = '';
-    actions.append(button('다음으로', () => { beep(); go('next'); }, 'primary'));
+    // 뿌시기에서 쓸 사진을 미리 받아 둔다
+    ensurePhotoImage(state);
+    actions.append(button('다음으로', () => { beep(); go('beat'); }, 'primary'));
   },
 };

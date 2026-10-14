@@ -1,5 +1,16 @@
 // 그림 에셋(public/assets/)이 생기기 전까지 쓰는 임시 도형.
-// 나중에 <img src="/assets/logo.png"> 등으로 바꾸면 된다.
+// public/assets/ 에 같은 이름의 PNG 가 있으면 그림 파일을 쓴다 (mascotHTML, rawChickenHTML).
+import { asset } from '../game/draw.js';
+
+export function mascotHTML({ sleeping = false } = {}) {
+  const img = asset(sleeping ? 'mascot-sleep' : 'mascot') || asset('logo');
+  return img ? `<img class="ph-mascot" src="${img.src}" alt="">` : mascotSVG({ sleeping });
+}
+
+export function rawChickenHTML(imageUrl) {
+  const img = asset('raw-chicken');
+  return !imageUrl && img ? `<img class="ph-raw" src="${img.src}" alt="">` : rawChickenSVG(imageUrl);
+}
 
 // 동글동글한 닭, 반쯤 감긴 눈, 무심한 미소
 export function mascotSVG({ sleeping = false } = {}) {
