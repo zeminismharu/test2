@@ -1,0 +1,16 @@
+{
+  "name": "chabunhan-chicken",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:api": "wrangler pages dev --port 8788",
+    "build": "vite build",
+    "preview": "npm run build && wrangler pages dev --port 8788"
+  },
+  "devDependencies": {
+    "vite": "^8.3.4",
+    "wrangler": "^4.151.0"
+  }
+}

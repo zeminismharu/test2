@@ -1,3 +1,9 @@
 notebooks/data
 notebooks/cifar_net.pth
 .ipynb_checkpoints/
+
+# 차분한치킨 (Vite / Cloudflare)
+node_modules/
+dist/
+.wrangler/
+.dev.vars
