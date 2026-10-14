@@ -9,7 +9,7 @@ import { result } from './screens/result.js';
 import { mascotHTML } from './ui/placeholders.js';
 import { escapeHTML } from './ui/dom.js';
 import { preloadAssets } from './game/draw.js';
-import { coatingLabel, FRY_LABEL } from './game/labels.js';
+import { FRY_LABEL } from './game/labels.js';
 import { fetchCalmPhoto } from './photo.js';
 import { unlockAudio } from './audio.js';
 
@@ -107,10 +107,7 @@ function updateReceipt() {
   const reached = (id) => now >= ORDER.indexOf(id);
   const rows = [];
   if (reached('dislike')) rows.push(['차분한 순살치킨', '1']);
-  if (reached('calm')) rows.push(['싫은 것', state.dislikeImage ? '사진 1장' : '그냥 생닭']);
   if (reached('confirm')) rows.push(['속', escapeHTML(state.calmWord)]);
-  if (reached('beat') && state.hits != null) rows.push(['때린 횟수', `${state.hits}대`]);
-  if (reached('shake') && state.coating != null) rows.push(['튀김옷', coatingLabel(state.coating)]);
   if (reached('throw') && state.throwFails != null) rows.push(['던지기 실패', `${state.throwFails}회`]);
   if (reached('fry') && state.fryState) rows.push(['튀김 상태', FRY_LABEL[state.fryState]]);
   if (reached('crush') && state.crushPercent != null) rows.push(['뿌신 정도', `${state.crushPercent}%`]);

@@ -7,7 +7,6 @@
 import { runScene, clamp, lerp, rand, easeInCubic, easeOutCubic, Popups, Particles } from '../game/engine.js';
 import { C, drawCoatedBall, drawFryer, label, mascotImage, roundRect } from '../game/draw.js';
 import { sfx } from '../audio.js';
-import { button } from '../ui/dom.js';
 
 const FLY_TIME = 0.5;
 const THROW_SPEED = 7; // 클수록 세게 던져야 함
@@ -15,12 +14,11 @@ const THROW_SPEED = 7; // 클수록 세게 던져야 함
 export const throwStage = {
   id: 'throw',
   guide: '튀김기에 던지세요',
-  line: '위로 휙 던지셈.',
+  line: '',
   render({ stage, actions, state, go, setLine, signal, updateReceipt }) {
     state.throwFails = 0;
     let streak = 0;
     let mascotT = -1; // 마스코트가 나와 있으면 0 이상
-    let skipShown = false;
     let time = 0;
     let phase = 'ready';
     let phaseT = 0;
@@ -68,7 +66,6 @@ export const throwStage = {
           });
         }
         engine.shake(5);
-        setLine(streak >= 3 ? '...들어감. 이유는 모름.' : '들어감.');
         setPhase('splash');
       } else {
         sfx.whoosh();
@@ -185,24 +182,19 @@ export const throwStage = {
           if (t >= 1) {
             resetBall();
             if (streak >= 3) {
-              setLine('...');
               setPhase('mascot');
             } else {
               popups.add('...일단 다시 던짐', layout.w / 2, layout.homeY - layout.r * 2.2, { color: C.inkSoft, size: 24, life: 1.6 });
-              setLine('...일단 다시 던짐.');
+              setLine('...일단 다시 던짐');
               setPhase('ready');
             }
           }
         } else if (phase === 'mascot') {
+          if (phaseT > 0.1 && phaseT - dt <= 0.1) setLine('일단 모르겠고 그냥 넣음');
           if (phaseT > 1.4) autoThrow();
         }
         if (mascotT >= 0) mascotT += dt;
         if (phase === 'mascot' && mascotT < 0) mascotT = 0;
-        // 손가락으로 던지기 어려운 사람을 위해 8초 동안 못 던지면 [그냥 넣기] 버튼을 보여 준다
-        if (!skipShown && time > 8 && phase === 'ready') {
-          skipShown = true;
-          actions.prepend(skipButton);
-        }
       },
       draw(g, w, h) {
         oil = drawFryer(g, w / 2, layout.fryerY, layout.fryerW, time, { bubbles: 1 });
@@ -297,12 +289,5 @@ export const throwStage = {
     resetBall();
 
     actions.innerHTML = '';
-    const skipButton = button('그냥 넣기', () => {
-      if (phase !== 'ready') return;
-      sfx.beep();
-      skipButton.remove();
-      setLine('일단 모르겠고 그냥 넣음.');
-      autoThrow();
-    }, 'secondary');
   },
 };

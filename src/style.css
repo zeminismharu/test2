@@ -278,6 +278,7 @@ button, input { font: inherit; color: inherit; }
   .guide-line { display: none; } /* 대사는 오른쪽 말풍선으로 */
 
   .side-mascot { width: min(100%, 240px); }
+  .bubble:empty { visibility: hidden; }
   .bubble {
     position: relative;
     margin: 0;

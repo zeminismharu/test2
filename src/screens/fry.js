@@ -9,11 +9,6 @@ import { button } from '../ui/dom.js';
 const FULL_TIME = 9; // 초. 반죽에서 새까맣게 될 때까지
 const GOLDEN = [0.45, 0.72]; // 이 사이에서 건지면 황금
 
-const RESULT_LINE = {
-  raw: '덜 익음. 일단 먹음.',
-  golden: '황금. 이유는 모름.',
-  burnt: '탔음. ...일단 먹음.',
-};
 
 export function judgeFry(cook) {
   if (cook < GOLDEN[0]) return 'raw';
@@ -24,8 +19,8 @@ export function judgeFry(cook) {
 export const fry = {
   id: 'fry',
   guide: '색 보고 건지세요',
-  line: '노릇해지면 건지셈.',
-  render({ stage, actions, state, go, setLine, signal, updateReceipt }) {
+  line: '',
+  render({ stage, actions, state, go, signal, updateReceipt }) {
     let cook = 0;
     let time = 0;
     let lifted = false;
@@ -37,7 +32,7 @@ export const fry = {
     signal.addEventListener('abort', () => sizzle.stop());
     state.fryState = null;
 
-    function lift(auto = false) {
+    function lift() {
       if (lifted) return;
       lifted = true;
       state.fryState = judgeFry(cook);
@@ -47,7 +42,6 @@ export const fry = {
       popups.add(state.fryState === 'golden' ? `${name}!` : name, layout.w / 2, layout.h * 0.2, {
         color: state.fryState === 'burnt' ? '#2a170c' : C.amberDark, size: 52, life: 2.5,
       });
-      setLine(auto ? '알아서 건짐. 탔음.' : RESULT_LINE[state.fryState]);
       updateReceipt();
       actions.innerHTML = '';
       actions.append(button('다음으로', () => { sfx.beep(); go('crush'); }, 'primary'));
@@ -63,7 +57,7 @@ export const fry = {
         if (!lifted) {
           cook += dt / FULL_TIME;
           sizzle.setLevel(0.5 + cook * 0.5);
-          if (cook > 1.12) lift(true);
+          if (cook > 1.12) lift(); // 너무 오래 두면 알아서 건짐 (탄)
         } else {
           liftT += dt;
         }
@@ -104,6 +98,6 @@ export const fry = {
     runScene(stage, scene, signal);
 
     actions.innerHTML = '';
-    actions.append(button('건지기', () => lift(false), 'primary'));
+    actions.append(button('건지기', () => lift(), 'primary'));
   },
 };

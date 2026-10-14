@@ -19,19 +19,12 @@ const CONFIG = {
   burnt: { hp: 3, cook: 0.95, radius: 0.2, near: 8, far: 5, speed: [1.2, 2.6], gravity: 6, edge: '#0d0805', crack: '#a8571f' },
 };
 
-const LINES = [
-  [0, '눌러서 깨셈.'],
-  [15, '...바삭함.'],
-  [40, '이유는 모름. 계속 뿌심.'],
-  [70, '거의 다 뿌심.'],
-  [95, '다 뿌심. 차분해짐(아마도).'],
-];
 
 export const crush = {
   id: 'crush',
   guide: '눌러서 뿌시세요',
-  line: '눌러서 깨셈.',
-  render({ stage, actions, state, go, setLine, signal, updateReceipt }) {
+  line: '',
+  render({ stage, actions, state, go, signal, updateReceipt }) {
     const fry = CONFIG[state.fryState] ? state.fryState : 'golden';
     const cfg = CONFIG[fry];
     const shellTex = makeShellTexture(cfg.cook, fry === 'burnt');
@@ -46,7 +39,6 @@ export const crush = {
     let photoLoading = true;
     let squash = 0;
     let squashV = 0;
-    let lineIndex = 0;
     let time = 0;
     let shellDirty = true;
     const layout = { cx: 0, cy: 0, R: 1 };
@@ -78,7 +70,6 @@ export const crush = {
         } else {
           addCracks(piece, px, py);
           sfx.crack();
-          popups.add('딱', ...toScreen(px, py), { color: C.ink, size: 28 });
           engine.shake(2);
         }
         shellDirty = true;
@@ -151,7 +142,7 @@ export const crush = {
       const level = fallArea < 0.04 ? 1 : fallArea < 0.11 ? 2 : 3;
       if (fry === 'golden') {
         sfx.crunch(level);
-        popups.add(level === 3 ? '와사삭!' : '바삭!', sx, sy, { color: C.amberDark, size: 30 + level * 6 });
+        popups.add('바삭!', sx, sy, { color: C.amberDark, size: 30 + level * 6 });
         engine.shake(2 + level * 2);
       } else if (fry === 'burnt') {
         sfx.crumble();
@@ -159,7 +150,7 @@ export const crush = {
         engine.shake(7);
       } else {
         sfx.squish();
-        popups.add('물컹...', sx, sy, { color: C.inkSoft, size: 30 });
+        popups.add('물컹', sx, sy, { color: C.inkSoft, size: 30 });
       }
       for (let i = 0; i < 6 + level * 5; i++) {
         crumbs.add({
@@ -173,13 +164,8 @@ export const crush = {
       }
 
       shellDirty = true;
-      const percent = Math.round(revealed() * 100);
-      state.crushPercent = percent;
+      state.crushPercent = Math.round(revealed() * 100);
       updateReceipt();
-      while (lineIndex + 1 < LINES.length && percent >= LINES[lineIndex + 1][0]) {
-        lineIndex++;
-        setLine(LINES[lineIndex][1]);
-      }
     }
 
     function addCracks(piece, px, py) {

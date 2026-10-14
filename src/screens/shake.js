@@ -4,7 +4,6 @@
 // 많이 흔들수록 튀김옷이 두꺼워진다.
 import { runScene, clamp, lerp, rand, easeInCubic, Particles } from '../game/engine.js';
 import { C, drawBag, drawCoatedBall, label, roundRect } from '../game/draw.js';
-import { coatingLabel } from '../game/labels.js';
 import { sfx } from '../audio.js';
 import { button } from '../ui/dom.js';
 
@@ -14,8 +13,8 @@ const INTRO = 0.8; // 초. 닭이 봉지에 들어가는 시간
 export const shake = {
   id: 'shake',
   guide: '봉지를 흔드세요',
-  line: '흔들면 옷 두꺼워짐.',
-  render({ stage, actions, state, go, setLine, signal, updateReceipt }) {
+  line: '',
+  render({ stage, actions, state, go, signal, updateReceipt }) {
     state.coating = 0;
     let energy = 0;
     let time = 0;
@@ -29,6 +28,7 @@ export const shake = {
     let lastRustle = 0;
     let lastReceipt = 0;
     let motionSeen = false;
+    let notice = ''; // 권한·센서 상태 안내
     const puffs = new Particles();
     const layout = { w: 1, h: 1, s: 1, cx: 0, cy: 0 };
 
@@ -126,9 +126,11 @@ export const shake = {
         }
         roundRect(g, gx, gy, gw, 18, 9);
         g.stroke();
-        label(g, `튀김옷: ${coatingLabel(state.coating)}`, w / 2, gy - 18, { size: 18, color: C.ink });
-        if (energy === 0 && time > INTRO) {
-          label(g, motionSeen ? '폰을 흔드세요!' : '봉지를 좌우로 끌어서 흔드세요', w / 2, 28, { size: 17, color: C.inkSoft });
+        label(g, '튀김옷', w / 2, gy - 18, { size: 18, color: C.ink });
+        if (notice) {
+          label(g, notice, w / 2, 28, { size: 16, color: C.inkSoft });
+        } else if (energy === 0 && time > INTRO) {
+          label(g, motionSeen ? '폰을 흔드세요' : '봉지를 좌우로 끌어서 흔드세요', w / 2, 28, { size: 17, color: C.inkSoft });
         }
       },
     };
@@ -171,13 +173,12 @@ export const shake = {
         }
         ready.remove();
         if (!granted) {
-          setLine('권한 없음. 화면을 좌우로 문지르셈.');
+          notice = '흔들기 권한이 없어요. 봉지를 좌우로 끌어서 흔드세요';
           return;
         }
         window.addEventListener('devicemotion', onMotion, { signal });
-        setLine('폰을 흔드셈. 떨어뜨리지 말고.');
         setTimeout(() => {
-          if (!motionSeen && !signal.aborted) setLine('흔들림이 안 잡힘. 화면을 좌우로 문지르셈.');
+          if (!motionSeen && !signal.aborted) notice = '흔들림이 안 잡혀요. 봉지를 좌우로 끌어서 흔드세요';
         }, 1500);
       }, 'secondary');
       actions.append(ready);

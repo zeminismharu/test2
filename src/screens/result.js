@@ -6,13 +6,13 @@ import { sfx, buzz } from '../audio.js';
 import { button, escapeHTML } from '../ui/dom.js';
 
 const W = 720;
-const H = 1320;
+const H = 1080;
 
 export const result = {
   id: 'result',
-  guide: '주문하신 치킨 나왔습니다',
-  line: '차분해짐(아마도).',
-  async render({ stage, actions, state, go, setLine, signal }) {
+  guide: '결과',
+  line: '',
+  async render({ stage, actions, state, go, signal }) {
     if (state.calmPercent == null) state.calmPercent = Math.floor(Math.random() * 101); // 의미 없음
     stage.innerHTML = '<p class="hint">영수증 뽑는 중...</p>';
     actions.innerHTML = '';
@@ -39,7 +39,7 @@ export const result = {
       <div class="result">
         <div class="result-card"></div>
         ${photo ? `<p class="result-credit">Photo by <a href="${escapeHTML(photo.photographerUrl)}" target="_blank" rel="noopener">${escapeHTML(photo.photographer)}</a> on <a href="${escapeHTML(photo.pexelsUrl)}" target="_blank" rel="noopener">Pexels</a></p>` : ''}
-        <p class="hint small">폰에서는 영수증을 길게 눌러도 저장돼요</p>
+        <p class="hint small" id="save-msg">폰에서는 영수증을 길게 눌러도 저장돼요</p>
       </div>`;
     const holder = stage.querySelector('.result-card');
     if (url) {
@@ -56,7 +56,7 @@ export const result = {
       button('이미지 저장', () => {
         if (!url) {
           buzz();
-          setLine('저장이 막힘. 이유는 모름.');
+          stage.querySelector('#save-msg').textContent = '이 브라우저에서는 이미지를 저장할 수 없어요';
           return;
         }
         sfx.chime();
@@ -70,7 +70,6 @@ export const result = {
           a.remove();
           setTimeout(() => URL.revokeObjectURL(href), 10000);
         }, 'image/png');
-        setLine('저장함.');
       }, 'primary'),
     );
   },
@@ -123,16 +122,11 @@ function drawCard(state, photo) {
   };
 
   text('차분한치킨', W / 2, 92, { size: 58, font: 'Jua', color: C.amberDark, align: 'center' });
-  text('일단 모르겠고 차분해지는 치킨', W / 2, 142, { size: 22, color: C.inkSoft, align: 'center' });
-  const now = new Date();
-  const stamp = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-  text(`주문번호 ${state.orderNo || '000'}`, pad, 194, { size: 26, font: 'Jua' });
-  text(stamp, W - pad, 194, { size: 22, color: C.inkSoft, align: 'right' });
-  dashed(226);
+  dashed(146);
 
   // 뿌시고 난 치킨 + 속 사진
-  const size = 420;
-  const top = 250;
+  const size = 440;
+  const top = 170;
   if (state.crushedCanvas) {
     g.drawImage(state.crushedCanvas, (W - size) / 2, top, size, size);
   } else {
@@ -142,35 +136,26 @@ function drawCard(state, photo) {
 
   const rows = [
     ['메뉴', '차분한 순살치킨 1'],
-    ['때린 횟수', `${state.hits ?? 0}대`],
     ['던지기 실패', `${state.throwFails ?? 0}회`],
-    ['튀김 상태', FRY_LABEL[state.fryState] || '모름'],
+    ['튀김 상태', FRY_LABEL[state.fryState] || '-'],
     ['뿌신 정도', `${state.crushPercent ?? 0}%`],
-    ['속', state.calmWord || '-'],
   ];
-  let y = top + size + 66;
+  let y = top + size + 70;
   for (const [k, v] of rows) {
     text(k, pad, y, { size: 26, color: C.inkSoft });
-    text(v.length > 16 ? `${v.slice(0, 15)}…` : v, W - pad, y, { size: 28, align: 'right' });
-    y += 46;
+    text(v, W - pad, y, { size: 28, align: 'right' });
+    y += 48;
   }
-  dashed(y - 10);
-  y += 36;
+  dashed(y - 14);
+  y += 40;
   text('차분함', pad, y, { size: 34, font: 'Jua' });
   text(`${state.calmPercent}%`, W - pad, y, { size: 56, font: 'Jua', color: C.amberDark, align: 'right' });
-  y += 44;
-  text('(의미 없음)', W - pad, y, { size: 20, color: C.inkSoft, align: 'right' });
-  y += 30;
-  text('결제 금액', pad, y + 10, { size: 24, color: C.inkSoft });
-  text('0원', W - pad, y + 10, { size: 30, font: 'Jua', align: 'right' });
 
   // 작가 표기 (Pexels 이용 조건)
-  const creditY = H - 92;
   if (photo) {
+    const creditY = H - 92;
     text(`Photo by ${photo.photographer} on Pexels`, W / 2, creditY, { size: 22, color: C.inkSoft, align: 'center' });
     text('pexels.com', W / 2, creditY + 30, { size: 18, color: cookColor(0.7), align: 'center' });
-  } else {
-    text('감사합니다. 일단 모르겠고 또 오세요.', W / 2, creditY + 10, { size: 22, color: C.inkSoft, align: 'center' });
   }
   return c;
 }

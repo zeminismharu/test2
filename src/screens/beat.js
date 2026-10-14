@@ -11,20 +11,12 @@ const HIT_RADIUS = 0.55; // 한 대가 영향을 주는 범위 (생닭 반지름
 const MAX_DISP = 0.6;
 const COMBO_GAP = 0.7; // 초. 이 안에 또 때리면 콤보
 
-const LINES = [
-  [1, '일단 때림.'],
-  [5, '이유는 모름.'],
-  [15, '...계속 때림.'],
-  [30, '손 안 아픔?'],
-  [60, '일단 모르겠고 계속.'],
-  [100, '백 대. 차분해짐?'],
-];
 
 export const beat = {
   id: 'beat',
   guide: '원하는 만큼 때리세요',
-  line: '때리셈. 이유는 없음.',
-  render({ stage, actions, state, go, setLine, signal, updateReceipt }) {
+  line: '',
+  render({ stage, actions, state, go, signal, updateReceipt }) {
     let tex = makeRawChickenTexture(null);
     if (state.dislikeImage) {
       const img = new Image();
@@ -61,7 +53,6 @@ export const beat = {
     let squashV = 0;
     let fist = null;
     let fistSide = 1;
-    let lineIndex = -1;
 
     function hit(x, y) {
       const u = (x - layout.cx) / layout.R;
@@ -105,7 +96,7 @@ export const beat = {
       fistSide *= -1;
 
       sfx.punch();
-      popups.add(combo >= 5 ? '퍼퍽!' : '퍽!', x + rand(-20, 20), y - 30, { color: C.ink, size: 36 + Math.min(combo, 10) * 2 });
+      popups.add('퍽!', x + rand(-20, 20), y - 30, { color: C.ink, size: 36 + Math.min(combo, 10) * 2 });
       for (let i = 0; i < 9; i++) {
         bits.add({
           x, y,
@@ -118,10 +109,6 @@ export const beat = {
       engine.shake(Math.min(4 + combo * 0.8, 14));
       engine.vibrate(15);
       updateReceipt();
-      while (lineIndex + 1 < LINES.length && state.hits >= LINES[lineIndex + 1][0]) {
-        lineIndex++;
-        setLine(LINES[lineIndex][1]);
-      }
     }
 
     // 맞은 자리에 멍 (텍스처에 직접 칠해서 그물과 같이 늘어나게)
@@ -213,10 +200,9 @@ export const beat = {
         }
         popups.draw(g);
 
-        label(g, `${state.hits}대`, w / 2, 26, { size: 22, color: C.inkSoft });
         if (comboShow > 0.01) {
           g.globalAlpha = comboShow;
-          label(g, `${combo} 콤보!`, w / 2, 56, { size: 26 + Math.min(combo, 20), color: C.amberDark });
+          label(g, `${combo} 콤보!`, w / 2, 32, { size: 26 + Math.min(combo, 20), color: C.amberDark });
           g.globalAlpha = 1;
         }
         if (state.hits === 0) {

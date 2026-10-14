@@ -10,7 +10,7 @@ const MAX_WORD_LENGTH = 30;
 export const idle = {
   id: 'idle',
   guide: '화면을 터치하세요',
-  line: '...zzz',
+  line: '',
   mascot: 'sleeping',
   render({ stage, actions, go, signal }) {
     stage.innerHTML = `
@@ -42,7 +42,7 @@ export const dislike = {
   id: 'dislike',
   step: 1,
   guide: '오늘 뭐가 싫으세요?',
-  line: '싫은 거 넣으면 일단 때림. 이유는 모름.',
+  line: '',
   render({ stage, actions, state, go }) {
     const draw = () => {
       const picked = state.dislikeImage;
@@ -84,13 +84,13 @@ export const calm = {
   id: 'calm',
   step: 2,
   guide: '뭘 보면 차분해지세요?',
-  line: '속 재료임. 아무거나 적으셈.',
-  render({ stage, actions, state, go, setLine }) {
+  line: '',
+  render({ stage, actions, state, go }) {
     stage.innerHTML = `
       <form class="calm" novalidate>
         <label class="calm-label" for="calm-input">속 재료</label>
         <input id="calm-input" class="calm-input" type="text" maxlength="${MAX_WORD_LENGTH}"
-          placeholder="예) 고양이, 바다, 이불" autocomplete="off" enterkeyhint="done"
+          autocomplete="off" enterkeyhint="done"
           value="${escapeHTML(state.calmWord)}">
         <p class="calm-error" role="alert"></p>
       </form>`;
@@ -109,7 +109,6 @@ export const calm = {
       if (hasBannedWord(word)) {
         buzz();
         error.textContent = '그건 안 튀겨요';
-        setLine('그건 안 튀김.');
         return;
       }
       // 이 시점에 Pexels 검색을 미리 시작해 둔다. 같은 단어로 다시 오면 다시 찾지 않는다.
@@ -138,14 +137,13 @@ export const confirm = {
   id: 'confirm',
   step: 3,
   guide: '주문 확인',
-  line: '0원임. 그냥 누르셈.',
+  line: '',
   render({ stage, actions, state, go }) {
     stage.innerHTML = `
       <div class="receipt receipt-big">
         <p class="receipt-title">주문서</p>
         <dl>
           <div><dt>차분한 순살치킨</dt><dd>1</dd></div>
-          <div><dt>싫은 것</dt><dd>${state.dislikeImage ? '사진 1장' : '그냥 생닭'}</dd></div>
           <div><dt>속</dt><dd>${escapeHTML(state.calmWord)}</dd></div>
         </dl>
         <div class="receipt-total"><span>결제 금액</span><strong>0원</strong></div>
@@ -165,7 +163,7 @@ export const confirm = {
 export const done = {
   id: 'done',
   guide: '주문 완료',
-  line: '일단 모르겠고 튀기러 감.',
+  line: '',
   render({ stage, actions, state, go }) {
     stage.innerHTML = `
       <div class="done">
