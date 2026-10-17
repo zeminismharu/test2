@@ -9,6 +9,7 @@ const PLATFORM = { youtube: '유튜브', tiktok: '틱톡', instagram: '인스타
 
 let videos = [];
 let filter = 'all';
+let hasClaude = false; // ANTHROPIC_API_KEY 가 없으면 카드·대본은 Claude 채팅에서 만듦
 
 async function api(path, opts = {}) {
   const r = await fetch('/api/' + path, {
@@ -56,6 +57,7 @@ async function start() {
   const s = await api('session').catch(() => ({}));
   if (!s.ready) return showLogin('아직 비밀번호(ADMIN_PASSWORD)가 설정되지 않았습니다. README 의 "처음 한 번"을 따라 넣고 다시 배포해 주세요.');
   if (!s.loggedIn) return showLogin();
+  hasClaude = !!s.claude;
   $('#login').hidden = true;
   $('#app').hidden = $('#tabbar').hidden = $('#logoutBtn').hidden = false;
   await load();
@@ -255,10 +257,10 @@ async function openVideo(id) {
     <div class="row" style="margin-top:8px"><button class="btn" id="memoSave" type="button">메모 저장</button></div>
     <h3>포맷 카드</h3>
     <div id="cardArea">${cardHtml(d.card)}</div>
-    <button class="btn primary" id="cardBtn" type="button">${d.card ? '카드 다시 만들기' : '포맷 카드 만들기'}</button>
+    ${hasClaude ? `<button class="btn primary" id="cardBtn" type="button">${d.card ? '카드 다시 만들기' : '포맷 카드 만들기'}</button>` : '<p class="sub">Claude API 키가 없어 여기서는 만들 수 없습니다. 영상 링크와 메모를 Claude 채팅에 보내 주세요.</p>'}
     <h3>우리 업체 대본</h3>
     <div id="scriptArea">${d.scripts.map(scriptHtml).join('') || '<p class="sub">카드를 만든 뒤 대본으로 바꿀 수 있습니다.</p>'}</div>
-    <button class="btn primary" id="adaptBtn" type="button" ${d.card ? '' : 'disabled'}>대본 만들기</button>
+    ${hasClaude ? `<button class="btn primary" id="adaptBtn" type="button" ${d.card ? '' : 'disabled'}>대본 만들기</button>` : ''}
     <h3>&nbsp;</h3>
     <button class="btn danger" id="delBtn" type="button">이 영상 지우기</button>`;
   $('#sheet').hidden = $('#sheetBg').hidden = false;
@@ -270,14 +272,14 @@ async function openVideo(id) {
     toast('메모를 저장했습니다.');
     load();
   });
-  $('#cardBtn').onclick = (e) => busy(e.currentTarget, 'Claude 가 정리하는 중…', async () => {
+  if (hasClaude) $('#cardBtn').onclick = (e) => busy(e.currentTarget, 'Claude 가 정리하는 중…', async () => {
     await saveMemo(); // 고친 메모로 카드를 만들도록 먼저 저장
     const { card } = await api(`videos/${encodeURIComponent(id)}/card`, { method: 'POST' });
     $('#cardArea').innerHTML = cardHtml(card);
     $('#adaptBtn').disabled = false;
     load();
   });
-  $('#adaptBtn').onclick = (e) => busy(e.currentTarget, 'Claude 가 쓰는 중…', async () => {
+  if (hasClaude) $('#adaptBtn').onclick = (e) => busy(e.currentTarget, 'Claude 가 쓰는 중…', async () => {
     const { script } = await api(`videos/${encodeURIComponent(id)}/adapt`, { method: 'POST' });
     const area = $('#scriptArea');
     if (!area.querySelector('.card-box')) area.innerHTML = '';

@@ -73,7 +73,7 @@ async function route(request, env, parts) {
   const m = request.method;
   const [head, id, sub] = parts;
 
-  if (head === 'session' && !id) return m === 'GET' ? json({ loggedIn: await isLoggedIn(request, env), ready: !!env.ADMIN_PASSWORD }) : methodNotAllowed();
+  if (head === 'session' && !id) return m === 'GET' ? json({ loggedIn: await isLoggedIn(request, env), ready: !!env.ADMIN_PASSWORD, claude: !!env.ANTHROPIC_API_KEY }) : methodNotAllowed();
   if (head === 'login' && !id) return m === 'POST' ? login(request, env) : methodNotAllowed();
   if (head === 'logout' && !id) return m === 'POST' ? logout() : methodNotAllowed();
 
