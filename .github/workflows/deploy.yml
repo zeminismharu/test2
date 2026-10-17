@@ -103,4 +103,5 @@ jobs:
         run: npx wrangler pages deploy app --project-name="$PROJECT" --branch=main --commit-dirty=true
 
       - name: 주소 안내
-        run: echo "✅ 배포 끝: https://$PROJECT.pages.dev"
+        run: |
+          echo "✅ 배포 끝: https://$PROJECT.pages.dev"
