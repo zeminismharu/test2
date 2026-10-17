@@ -1,0 +1,106 @@
+# 밈 포맷 배포
+#
+# 아이디어 아카이브(zeminismharu/test)와 같은 방식(GitHub Actions → Cloudflare Pages), 같은 Cloudflare 계정입니다.
+# 단추를 눌렀을 때만 돕니다.
+#
+# 쓰는 법 : GitHub 저장소 → Actions 탭 → 왼쪽에서 "사이트 배포 (밈 포맷)" 선택 → 오른쪽 "Run workflow"
+#
+# 주소 : https://zeminism-meme.pages.dev
+#
+# 처음 한 번은 이 저장소 Settings → Secrets and variables → Actions 에 아래 5개를 넣어야 합니다 (README 참고).
+#   CLOUDFLARE_API_TOKEN   Cloudflare Pages·D1 편집 권한이 있는 토큰
+#   CLOUDFLARE_ACCOUNT_ID  아이디어 아카이브와 같은 계정 ID
+#   ADMIN_PASSWORD         로그인 비밀번호 (꼭 필요. 없으면 아무도 못 씀)
+#   YOUTUBE_API_KEY        유튜브 Data API v3 키
+#   ANTHROPIC_API_KEY      Claude API 키
+# 선택: Variables 에 CLAUDE_MODEL (기본 claude-sonnet-5-5)
+#
+# 데이터베이스(D1)는 없으면 이 작업이 알아서 만들고 사이트에 연결합니다.
+
+name: 사이트 배포 (밈 포맷)
+
+on:
+  workflow_dispatch:
+
+env:
+  PROJECT: zeminism-meme
+  DB_NAME: zeminism-meme-db
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: 코드 가져오기
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: 비밀값 확인
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID 비밀값이 이 저장소에 없습니다. README 의 '처음 한 번' 을 따라 넣어 주세요."
+            exit 1
+          fi
+          npm install --no-save --no-audit --no-fund wrangler@4 >/dev/null
+          npx wrangler --version
+
+      # 처음 한 번만 실제로 만들어지고, 이미 있으면 그냥 넘어갑니다.
+      - name: Cloudflare 프로젝트 · 데이터베이스 준비
+        run: |
+          set -euo pipefail
+          npx wrangler pages project create "$PROJECT" --production-branch=main || echo "(프로젝트가 이미 있습니다)"
+
+          find_db() { npx wrangler d1 list --json | sed -n '/^\[/,$p' | jq -r --arg n "$DB_NAME" '.[] | select(.name==$n) | .uuid' | head -1; }
+          DB_ID=$(find_db)
+          if [ -z "$DB_ID" ]; then
+            npx wrangler d1 create "$DB_NAME"
+            DB_ID=$(find_db)
+          fi
+          [ -n "$DB_ID" ] || { echo "::error::D1 데이터베이스를 만들거나 찾지 못했습니다. API 토큰에 'D1 편집' 권한이 있는지 확인해 주세요."; exit 1; }
+
+          BODY=$(jq -n --arg db "$DB_ID" '{
+            deployment_configs: { production: { compatibility_date: "2026-10-01", d1_databases: { DB: { id: $db } } } }
+          }')
+          RES=$(curl -sS -X PATCH \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$PROJECT" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" \
+            --data "$BODY")
+          if [ "$(echo "$RES" | jq -r '.success')" != "true" ]; then
+            echo "$RES" | jq '.errors'
+            echo "::error::사이트에 DB 를 연결하지 못했습니다. API 토큰에 'Cloudflare Pages 편집' 권한이 있는지 확인해 주세요."
+            exit 1
+          fi
+          echo "연결됨 → DB: $DB_ID"
+
+      - name: 비밀번호 · API 키 넣기
+        env:
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_MODEL: ${{ vars.CLAUDE_MODEL }}
+        run: |
+          put() {
+            if [ -n "$2" ]; then
+              printf '%s' "$2" | npx wrangler pages secret put "$1" --project-name="$PROJECT"
+            else
+              echo "::warning::$1 비밀값이 없어 건너뜁니다. (Cloudflare 화면에서 직접 넣었다면 괜찮습니다)"
+            fi
+          }
+          put ADMIN_PASSWORD "$ADMIN_PASSWORD"
+          put YOUTUBE_API_KEY "$YOUTUBE_API_KEY"
+          put ANTHROPIC_API_KEY "$ANTHROPIC_API_KEY"
+          if [ -n "$CLAUDE_MODEL" ]; then put CLAUDE_MODEL "$CLAUDE_MODEL"; fi
+
+      - name: 올라갈 파일 확인
+        run: find app -type f | sort
+
+      - name: Cloudflare Pages 에 올리기
+        run: npx wrangler pages deploy app --project-name="$PROJECT" --branch=main --commit-dirty=true
+
+      - name: 주소 안내
+        run: echo "✅ 배포 끝: https://$PROJECT.pages.dev"

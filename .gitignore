@@ -1,3 +1,10 @@
 notebooks/data
 notebooks/cifar_net.pth
 .ipynb_checkpoints/
+
+# 밈 포맷: 비밀값·로컬 DB·로컬 실행 파일은 올리지 않기
+.env
+.dev.vars
+.wrangler/
+node_modules/
+*.db

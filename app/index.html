@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>밈 포맷</title>
+  <meta name="description" content="지금 뜨는 숏폼의 형식을 모아 업체용 대본으로 바꾸는 도구" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1 class="brand">밈 포맷</h1>
+    <button class="text-btn" id="logoutBtn" type="button" hidden>로그아웃</button>
+  </header>
+
+  <!-- 로그인 -->
+  <section id="login" class="page" hidden>
+    <div class="panel">
+      <h2>로그인</h2>
+      <p class="sub" id="loginNote">유튜브 쿼터와 Claude 요금이 드는 도구라서 비밀번호가 있어야 씁니다.</p>
+      <form id="loginForm">
+        <input id="password" type="password" autocomplete="current-password" placeholder="비밀번호" required />
+        <button class="btn primary wide" type="submit">들어가기</button>
+      </form>
+    </div>
+  </section>
+
+  <main id="app" class="page" hidden>
+    <!-- 순위 -->
+    <section id="view-rank" class="view">
+      <div class="row-between">
+        <div>
+          <h2>지금 뜨는 순서</h2>
+          <p class="sub" id="rankNote">시간당 조회수가 빨리 느는 순서</p>
+        </div>
+        <div class="row">
+          <a class="btn" href="/api/rank.csv" download>CSV</a>
+          <button class="btn primary" id="collectBtn" type="button">지금 수집</button>
+        </div>
+      </div>
+      <ol class="list" id="rankList"></ol>
+    </section>
+
+    <!-- 전체 -->
+    <section id="view-all" class="view" hidden>
+      <h2>모은 영상</h2>
+      <div class="chips" id="filterChips"></div>
+      <ul class="list" id="allList"></ul>
+    </section>
+
+    <!-- 직접 등록 -->
+    <section id="view-add" class="view" hidden>
+      <h2>링크 직접 등록</h2>
+      <p class="sub">틱톡·인스타에서 본 영상. 조회수는 자동으로 모으지 않습니다.</p>
+      <form id="addForm" class="panel">
+        <label>링크<input name="url" type="url" placeholder="https://www.tiktok.com/…" required /></label>
+        <label>제목 (선택)<input name="title" maxlength="300" /></label>
+        <label>메모<textarea name="memo" rows="5" placeholder="첫 장면, 자막, 반전, 음원을 구체적으로. 예) 첫 장면: 텅 빈 방, 자막 '이게 원래…' / 반전: 되감기로 짐 가득"></textarea></label>
+        <button class="btn primary wide" type="submit">등록</button>
+      </form>
+    </section>
+
+    <!-- 설정 -->
+    <section id="view-settings" class="view" hidden>
+      <h2>설정</h2>
+      <form id="settingsForm" class="panel">
+        <h3>유튜브 수집</h3>
+        <label>검색어 (줄마다 하나, 최대 10개)<textarea name="queries" rows="5"></textarea></label>
+        <div class="grid2">
+          <label>최근 며칠<input name="days" type="number" min="1" max="30" /></label>
+          <label>검색어당 개수<input name="maxResultsPerQuery" type="number" min="1" max="50" /></label>
+          <label>최대 길이(초)<input name="maxDurationSec" type="number" min="10" max="600" /></label>
+          <label>추적 기간(일)<input name="trackDays" type="number" min="1" max="30" /></label>
+          <label>지역 코드<input name="region" maxlength="2" /></label>
+        </div>
+        <p class="sub" id="quotaNote"></p>
+        <h3>업체 정보 (대본에 들어감)</h3>
+        <label>업체 이름<input name="name" /></label>
+        <label>서비스<input name="service" /></label>
+        <label>지역<input name="area" /></label>
+        <label>연락 문구<input name="contact_line" /></label>
+        <label>말투<input name="tone" /></label>
+        <button class="btn primary wide" type="submit">저장</button>
+      </form>
+    </section>
+  </main>
+
+  <nav class="tabbar" id="tabbar" hidden>
+    <button type="button" data-view="rank" class="on">순위</button>
+    <button type="button" data-view="all">전체</button>
+    <button type="button" data-view="add">등록</button>
+    <button type="button" data-view="settings">설정</button>
+  </nav>
+
+  <!-- 영상 상세 -->
+  <div class="sheet-bg" id="sheetBg" hidden></div>
+  <section class="sheet" id="sheet" hidden aria-modal="true" role="dialog">
+    <div class="sheet-head">
+      <button class="text-btn" id="sheetClose" type="button">닫기</button>
+    </div>
+    <div id="sheetBody"></div>
+  </section>
+
+  <div class="toast" id="toast" hidden></div>
+  <script src="/app.js"></script>
+</body>
+</html>

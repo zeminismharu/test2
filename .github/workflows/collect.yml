@@ -1,0 +1,26 @@
+name: 유튜브 수집 (하루 2번)
+
+# 유튜브에서 최근 짧은 영상을 찾고, 추적 중인 영상의 조회수를 기록합니다.
+# 한국 시간 오전 9시 23분 · 오후 9시 23분 (GitHub 예약 실행은 몇 분~수십 분 늦을 수 있음)
+on:
+  schedule:
+    - cron: '23 0,12 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: collect
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 수집
+        env:
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+        run: |
+          B=https://zeminism-meme.pages.dev
+          jq -n --arg p "$ADMIN_PASSWORD" '{password:$p}' | curl -sS -c jar -H 'content-type: application/json' -d @- "$B/api/login" -o /dev/null -w "로그인 %{http_code}\n"
+          code=$(curl -sS -b jar -X POST "$B/api/collect" -o out.json -w "%{http_code}")
+          echo "수집 $code $(cat out.json)"
+          [ "$code" = "200" ]
